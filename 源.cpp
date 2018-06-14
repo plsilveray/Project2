@@ -2,357 +2,60 @@
 #include<stdlib.h>
 #include<math.h>
 #include<time.h>
-
-
-#define POPSIZE 100             
-#define MAXGENS 10000            
-#define NVARS 30                                    /*   在这里进行函数参数个数的修改                  */
-#define PXOVER 0.5               
-#define PMUTATION 0.045         
-#define TRUE 1
-#define FALSE 0
+#include<vector>
+#define N 30
 #define pi 3.1415926
-int generation;
-int cur_best;
-
-struct genotype
+#define popmax 5.12  // 个体取值
+#define popmin -5.12
+#define delta 0.5   //Diff函数中的参数
+#define sigma 0.5   //Identify函数中的参数
+using std::vector;
+int FEs;
+double func(double x[])
 {
-	double gene[NVARS];
-	double fitness;
-	double upper[NVARS];
-	double lower[NVARS];
-	double rfitness;
-	double cfitness;
-};
-
-struct genotype population[POPSIZE + 1];
-struct genotype newpopulation[POPSIZE + 1];
-
-
-void initialize(void);
-double randval(double, double);
-void evaluate(void);
-void keep_the_best(void);
-void elitist(void);
-void select(void);
-void crossover(void);
-void Xover(int, int);
-void swap(double *, double *);
-void mutate(void);
-void report(void);
-
-
-void initialize(void)
-{
-
-	//	printf("initialize ......\n");
-	int i, j;
-	double lbound, ubound;
-	//	fscanf(infile, "%lf", &lbound);
-	//	fscanf(infile, "%lf", &ubound);
-	lbound = -30;                                        	//	修改变量的取值范围。 
-	ubound = 30;
-	for (j = 0; j < POPSIZE + 1; j++)
-	{
-		population[j].fitness = 100;
-		population[j].rfitness = 0;
-		population[j].cfitness = 0;
-		for (i = 0; i < NVARS; i++) {
-
-			population[j].lower[i] = lbound;
-			population[j].upper[i] = ubound;
-			population[j].gene[i] = randval(population[j].lower[i],
-				population[j].upper[i]);
-
-
-		}
-
-	}
-
-	population[POPSIZE].fitness = 10000000;
-
-
-}
-
-
-double randval(double low, double high)
-{
-	double val;
-	val = ((double)(rand() % 1000) / 1000.0)*(high - low) + low;
-	return(val);
-}
-
-
-void evaluate(void)                                        /*   在这里进行函数修改                  */
-{
-	int j;
+	double rt1;
 	int i;
 
-	double x[NVARS];
-	double rt1, rt2;
+	rt1 = 0;
 
-
-	for (j = 0; j < POPSIZE; j++)
-	{
-		for (i = 0; i < NVARS; i++)
-			x[i] = population[j].gene[i];
-
-
-
-		rt1 = 0, rt2 = 0;
-		for (i = 0; i<30 - 1; i++) {
-			rt1 += 100 * ((x[i + 1] - x[i] * x[i])*(x[i + 1] - x[i] * x[i])) + (x[i] - 1)*(x[i] - 1);
-		}
-
-
-		population[j].fitness = rt1;
-
+	for (i = 0; i<30; i++) {
+		rt1 += x[i] * x[i] - 10 * cos(2 * pi*x[i]) + 10;
 	}
-
+	return rt1;
 }
-
-
-
-void keep_the_best()
+void Diff(double x[],double v[],int dim)  //输出：向量v【N】和 FEs.
 {
-	int mem;
+	FEs = 0;
+	double value1,value2;
+	double Xd[N];
 	int i;
-	cur_best = 0;
-
-	for (mem = 0; mem < POPSIZE; mem++)
+	value1 = func(x);
+	FEs += 1;
+	for (i = 0; i++; i < dim)
 	{
-		if (population[mem].fitness < population[POPSIZE].fitness)
-		{
-			cur_best = mem;
-			population[POPSIZE].fitness = population[mem].fitness;
-		}
+		Xd[i] = x[i] + delta;
+		value2 = func(Xd);
+		v[i] = value2 - value1;
+		FEs += 1;
 	}
-
-	for (i = 0; i < NVARS; i++)
-		population[POPSIZE].gene[i] = population[cur_best].gene[i];
 }
-
-void elitist()
+void Identify()
 {
+	int FEs_used = 0;
+	vector<int> seps;
+	vector<int> nonseps;
+	int all_dims[N];
+	double x[N],X[N];
+	
 	int i;
-	double best, worst;
-	int best_mem = 0, worst_mem = 0;
-
-	best = population[0].fitness;
-	worst = population[0].fitness;
-	for (i = 0; i < POPSIZE - 1; ++i)
+	for (i = 0; i < N; i++)
+		x[i] = ((double)(rand() % 1000) / 1000.0)*(popmax - popmin) + popmin;
+	double dv[N],pv[N];
+	Diff(x,dv,N);
+	FEs_used += FEs;
+	for(i=0;i++;i<N)
 	{
-		if (population[i].fitness < population[i + 1].fitness)
-		{
-			if (population[i].fitness <= best)
-			{
-				best = population[i].fitness;
-				best_mem = i;
-			}
-			if (population[i + 1].fitness >= worst)
-			{
-				worst = population[i + 1].fitness;
-				worst_mem = i + 1;
-			}
-		}
-		else
-		{
-			if (population[i].fitness >= worst)
-			{
-				worst = population[i].fitness;
-				worst_mem = i;
-			}
-			if (population[i + 1].fitness <= best)
-			{
-				best = population[i + 1].fitness;
-				best_mem = i + 1;
-			}
-		}
-	}
-
-	if (best <= population[POPSIZE].fitness)
-	{
-		for (i = 0; i < NVARS; i++)
-			population[POPSIZE].gene[i] = population[best_mem].gene[i];
-		population[POPSIZE].fitness = population[best_mem].fitness;
-	}
-	else
-	{
-		for (i = 0; i < NVARS; i++)
-			population[worst_mem].gene[i] = population[POPSIZE].gene[i];
-		population[worst_mem].fitness = population[POPSIZE].fitness;
-	}
-
-	//	printf("best individual %d\t fitness = %g\t%g\n",best_mem,population[POPSIZE].fitness,population[best_mem].fitness);
-}
-
-void select(void)
-{
-	int i, j, k;
-	struct genotype a[10];
-	struct genotype b;
-	for (k = 0; k<POPSIZE; k++)
-	{
-
-		for (i = 0; i<10; i++)
-		{
-			j = ((int)(rand() % (POPSIZE - 0)));
-			a[i] = population[j];
-
-		}
-		for (i = 0; i<10; i++)
-		{
-			b = a[0];
-			if (a[i].fitness<b.fitness)
-				b = a[i];
-		}
-		newpopulation[k] = b;
-	}
-	for (i = 0; i<POPSIZE; i++)
-
-		population[i] = newpopulation[i];
-
-}
-
-
-void crossover(void)
-{
-	int mem, one;
-	int first = 0;
-	double x;
-
-	//	printf("crossover ......\n");
-
-	for (mem = 0; mem < POPSIZE; ++mem)
-	{
-		x = rand() % 1000 / 1000.0;
-		if (x < PXOVER)
-		{
-			++first;
-			if (first % 2 == 0)
-				Xover(one, mem);
-			else
-				one = mem;
-		}
-		//		printf("%d\t%g\t%g\t%g\n",mem,population[mem].gene[0],population[mem].gene[1],population[mem].gene[2]);
+		X[N] = x[N] + sigma;
 	}
 }
 
-void Xover(int one, int two)
-{
-	int i;
-	int point;
-
-
-	if (NVARS > 1)
-	{
-		if (NVARS == 2)
-			point = 1;
-		else
-			point = (rand() % (NVARS - 1)) + 1;
-
-		for (i = 0; i < point; i++)
-			swap(&population[one].gene[i], &population[two].gene[i]);
-
-	}
-}
-
-
-void swap(double *x, double *y)
-{
-	double temp;
-
-	temp = *x;
-	*x = *y;
-	*y = temp;
-
-}
-
-
-void mutate(void)
-{
-	int i, j;
-	double lbound, hbound;
-	double x;
-
-	//	printf("mutate ......\n");
-
-	for (i = 0; i < POPSIZE; i++) {
-		for (j = 0; j < NVARS; j++)
-		{
-			x = rand() % 1000 / 1000.0;
-			if (x < PMUTATION)
-			{
-				lbound = population[i].lower[j];
-				hbound = population[i].upper[j];
-				population[i].gene[j] = randval(lbound, hbound);
-			}
-		}
-		//		printf("%d\t%g\t%g\t%g\n",i,population[i].gene[0],population[i].gene[1],population[i].gene[2]);
-	}
-}
-
-
-/*void report(void)
-{
-int i;
-double best_val;
-double avg;
-double stddev;
-double sum_square;
-double square_sum;
-double sum;
-
-sum = 0.0;
-sum_square = 0.0;
-
-for (i = 0; i < POPSIZE; i++)
-{
-sum += population[i].fitness;
-sum_square += population[i].fitness * population[i].fitness;
-}
-
-avg = sum / (double)POPSIZE;
-square_sum = avg * avg * POPSIZE;
-stddev = sqrt((sum_square - square_sum) / (POPSIZE - 1));
-best_val = population[POPSIZE].fitness;
-
-
-}*/
-
-int main()
-{
-	srand((unsigned)time(NULL));
-	int i;
-
-	for (i = 0; i<5; i++)
-	{
-
-		generation = 0;
-		initialize();
-		evaluate();
-		keep_the_best();
-
-		while (generation<MAXGENS)
-		{
-			generation++;
-			select();
-			crossover();
-			mutate();
-			//	report();
-			evaluate();
-			elitist();
-			//		printf("result of generation %d",generation);
-			/*	for (i = 0; i < NVARS; i++)
-			{
-			printf( "var(%d) = %g\t", i, population[POPSIZE].gene[i]);
-			}
-			printf( "best-val = %g\n", population[POPSIZE].fitness);
-			*/
-
-		}
-
-		printf("best fitness = %g\n", population[POPSIZE].fitness);
-	}
-	return 0;
-}
