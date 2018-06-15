@@ -9,7 +9,10 @@
 #define popmin -5.12
 #define delta 0.5   //Diff函数中的参数
 #define sigma 0.5   //Identify函数中的参数
+#define xi1 0.5
+#define xi2 0.5
 using std::vector;
+
 int FEs;
 double func(double x[])
 {
@@ -46,6 +49,7 @@ void Identify()
 	vector<int> nonseps;
 	int all_dims[N];
 	double x[N],X[N];
+	vector<int> pdim(1);
 	
 	int i;
 	for (i = 0; i < N; i++)
@@ -56,6 +60,35 @@ void Identify()
 	for(i=0;i++;i<N)
 	{
 		X[N] = x[N] + sigma;
+		X[i] = x[i];
+		Diff(X, pv, i);
+		FEs_used += FEs;
+		if (pv[i] - dv[i] >= -xi1 && pv[i] - dv[i] <= xi1)
+			seps.push_back(i);
+		else
+			nonseps.push_back(i);
+	}
+	int group[N];
+	auto it = nonseps.begin();
+	*it = 0;
+	int j = 0;
+	while(!nonseps.empty())
+	{
+		pdim = { nonseps[0] };
+		group[j] = nonseps[0];
+		it=nonseps.erase(it);
+		while(!pdim.empty() && !nonseps.empty())
+		{
+			for (i = 0; i < N; i++)
+				X[i] = x[i];
+			X[pdim[0]] += sigma;
+			Diff(X, pv, nonseps.size());
+			FEs_used += FEs;
+
+			for (i = 0; i < nonseps.size(); i++)
+				if(pv[i] - dv[i] >= -xi2 && pv[i] - dv[i] <= xi2)
+				
+		}
 	}
 }
 
