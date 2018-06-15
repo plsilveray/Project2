@@ -14,6 +14,12 @@
 using std::vector;
 
 int FEs;
+int group[N];
+vector<int> seps;
+vector<int> nonseps;
+int FEs_used = 0;
+int flag = 0;      //记录group数组是否为空
+
 double func(double x[])
 {
 	double rt1;
@@ -44,20 +50,17 @@ void Diff(double x[],double v[],int dim)  //输出：向量v【N】和 FEs.
 }
 void Identify()
 {
-	int FEs_used = 0;
-	vector<int> seps;
-	vector<int> nonseps;
-	int all_dims[N];
-	double x[N],X[N];
-	vector<int> pdim(1);
 	
+	int all_dims[N];
+	double x[N], X[N];
+	vector<int> pdim(1);
 	int i;
 	for (i = 0; i < N; i++)
 		x[i] = ((double)(rand() % 1000) / 1000.0)*(popmax - popmin) + popmin;
-	double dv[N],pv[N];
-	Diff(x,dv,N);
+	double dv[N], pv[N];
+	Diff(x, dv, N);
 	FEs_used += FEs;
-	for(i=0;i++;i<N)
+	for (i = 0; i++; i < N)
 	{
 		X[N] = x[N] + sigma;
 		X[i] = x[i];
@@ -68,27 +71,48 @@ void Identify()
 		else
 			nonseps.push_back(i);
 	}
-	int group[N];
+	
 	auto it = nonseps.begin();
 	*it = 0;
 	int j = 0;
-	while(!nonseps.empty())
+	while (!nonseps.empty())
 	{
 		pdim = { nonseps[0] };
 		group[j] = nonseps[0];
-		it=nonseps.erase(it);
-		while(!pdim.empty() && !nonseps.empty())
+		flag = 1;
+		it = nonseps.erase(it);
+		while (!pdim.empty() && !nonseps.empty())
 		{
 			for (i = 0; i < N; i++)
 				X[i] = x[i];
 			X[pdim[0]] += sigma;
 			Diff(X, pv, nonseps.size());
 			FEs_used += FEs;
-
 			for (i = 0; i < nonseps.size(); i++)
-				if(pv[i] - dv[i] >= -xi2 && pv[i] - dv[i] <= xi2)
-				
+			{
+				if (pv[i] - dv[i] >= -xi2 && pv[i] - dv[i] <= xi2)
+				{
+					group[j + 1] = i;
+					pdim = { i };
+				}
+			}
+			it = nonseps.begin();
+			while (it != nonseps.end())
+			{
+				if (*it = group[j])
+					it = nonseps.erase(it);
+				++it;
+			}
 		}
+		if (group[j] = 1 || group[j] = -1)
+			seps.push_back(group[j]);
+		else
+			j += 1;
 	}
 }
-
+void main()
+	{
+	Identify();
+	if(flag)
+	{ }
+	}
