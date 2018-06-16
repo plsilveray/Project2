@@ -7,18 +7,20 @@
 #define pi 3.1415926
 #define popmax 5.12  // 个体取值
 #define popmin -5.12
-#define delta 0.5   //Diff函数中的参数
+#define delta 10   //Diff函数中的参数
 #define sigma 0.5   //Identify函数中的参数
-#define xi1 0.5
-#define xi2 0.5
+#define xi1 0.01
+#define xi2 0.01
+#define S_max 200
 using std::vector;
 
 int FEs;
-int group[N];
+int j = 0;
+vector<vector<int>> group;
+vector<vector<int>> subcmpt;
 vector<int> seps;
 vector<int> nonseps;
 int FEs_used = 0;
-int flag = 0;      //记录group数组是否为空
 
 double func(double x[])
 {
@@ -74,12 +76,11 @@ void Identify()
 	
 	auto it = nonseps.begin();
 	*it = 0;
-	int j = 0;
 	while (!nonseps.empty())
 	{
 		pdim = { nonseps[0] };
-		group[j] = nonseps[0];
-		flag = 1;
+		group[j].push_back( nonseps[0]);
+		
 		it = nonseps.erase(it);
 		while (!pdim.empty() && !nonseps.empty())
 		{
@@ -92,27 +93,73 @@ void Identify()
 			{
 				if (pv[i] - dv[i] >= -xi2 && pv[i] - dv[i] <= xi2)
 				{
-					group[j + 1] = i;
+					group[j].push_back(i);
 					pdim = { i };
 				}
 			}
 			it = nonseps.begin();
+			
 			while (it != nonseps.end())
 			{
-				if (*it = group[j])
-					it = nonseps.erase(it);
-				++it;
+				for (auto it_g = group[j].begin(); it_g != group[j].end(); ++it_g)
+				{
+					if (*it = *it_g)
+						it = nonseps.erase(it);
+					++it;
+				}
 			}
 		}
-		if (group[j] = 1 || group[j] = -1)
-			seps.push_back(group[j]);
+		if (group[j].size()== 1)
+			seps.push_back(*group[j].begin());
 		else
 			j += 1;
 	}
 }
 void main()
-	{
+{
+	int n;
 	Identify();
-	if(flag)
-	{ }
+	if (!group.empty())
+		subcmpt = group;
+	if (!seps.empty())
+	{
+		j = subcmpt.size() + 1;
+		if (seps.size() >= S_max)
+		{
+			n = floor(seps.size() / S_max);
+			vector<vector<int>> seps_s;
+			int i = 0;
+			int k = 0;
+			auto it_seps = seps.begin();
+			while (it_seps != seps.end() && i < n)
+			{
+
+				while (k < seps.size() / n && it_seps != seps.end())
+				{
+					seps_s[i].push_back(*it_seps);
+					it_seps++;
+					k++;
+				}
+				k = 0;
+				subcmpt[j] = seps_s[i];
+				i++;
+				j++;
+			}
+		}
+		else	
+			subcmpt[j] = seps;
 	}
+	int FEs_max = 0;                 //FEs_max初始化？？
+	FEs_max -= FEs_used;
+	FEs = 0;
+	/*	while (FEs < FEs_max)
+			for (i = 0; i < subcmpt.size()); i++)
+			{optimizer(subcmpt[i])
+			{
+
+			}])*/
+	int i;
+	for (i = 0; i < seps.size(); i++)
+	printf("%d", seps[i]);
+	getchar();
+}
