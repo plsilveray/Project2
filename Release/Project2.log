@@ -1,11 +1,12 @@
 ﻿  源.cpp
 源.cpp(98): warning C4018: “<”: 有符号/无符号不匹配
-源.cpp(143): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
-源.cpp(150): warning C4018: “<”: 有符号/无符号不匹配
-源.cpp(175): warning C4018: “<”: 有符号/无符号不匹配
+源.cpp(311): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+源.cpp(327): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
+源.cpp(334): warning C4018: “<”: 有符号/无符号不匹配
+源.cpp(355): warning C4018: “<”: 有符号/无符号不匹配
   正在生成代码
-  2 of 224 functions ( 0.9%) were compiled, the rest were copied from previous compilation.
+  1 of 232 functions ( 0.4%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    4 functions had inline decision re-evaluated but remain unchanged
+    0 functions had inline decision re-evaluated but remain unchanged
   已完成代码的生成
   Project2.vcxproj -> C:\Users\CLOUD\source\repos\Project2\Release\Project2.exe
